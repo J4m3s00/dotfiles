@@ -32,7 +32,34 @@ vim.keymap.set("n", "N", "Nzzzv")
 vim.keymap.set("n", "<Tab>", ":bnext<CR>", opts)
 vim.keymap.set("n", "<S-Tab>", ":bprevious<CR>", opts)
 vim.keymap.set("n", "<leader>w", ":Bdelete!<CR>", opts) -- close buffer
-vim.keymap.set("n", "<leader>b", "<cmd> enew <CR>", opts) -- new buffer
+vim.keymap.set("n", "<leader>bn", "<cmd> enew <CR>", opts) -- new buffer
+vim.keymap.set("n", "<leader>bt", function()
+	local filetypes = vim.fn.getcompletion("", "filetype")
+
+	local update_filetype = function(prompt_bufnr)
+		local entry = require("telescope.actions.state").get_selected_entry()
+		require("telescope.actions").close(prompt_bufnr)
+		if entry then
+			vim.bo.filetype = entry.value
+			print("Filetype set tp: " .. entry.value)
+		end
+	end
+
+	require("telescope.pickers")
+		.new({}, {
+			prompt_title = "Select Filetype",
+			finder = require("telescope.finders").new_table({
+				results = filetypes,
+			}),
+			sorter = require("telescope.config").values.generic_sorter({}),
+			attach_mappings = function(_, map)
+				map("i", "<CR>", update_filetype)
+				map("n", "<CR>", update_filetype)
+				return true
+			end,
+		})
+		:find()
+end, opts) -- Buffer type
 
 -- Window management
 vim.keymap.set("n", "<leader>v", "<C-w>v", opts) -- split window vertically
